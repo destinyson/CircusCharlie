@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class Stage1 : MonoBehaviour
 {
     public GameObject camera;
-    public GameObject firstFireRing;
+    public GameObject player;
     public GameObject fireRingPrefab;
     public GameObject bonusFireRingPrefab;
     public Animator[] audienceAnim;
@@ -15,31 +15,42 @@ public class Stage1 : MonoBehaviour
     public float fireRingWidth;
     public float fireRingPosY;
     public float bonusFireRingPosY;
-    public AudioClip bgm1;
+    public AudioClip BGM1;
+    public AudioClip warningBGM1;
     public AudioClip die;
     public AudioClip gameOver;
     public AudioClip applause;
     public AudioClip score;
+    public AudioClip pauseClip;
+    public GameObject pauseText;
 
+    private AudioClip[] loseClipList;
     private GameObject oldFireRing;
     private GameObject newFireRing;
-    private AudioSource audio;
-    private bool gameOverPlay;
-    private bool bgmPlay;
+    private GameObject am;
+    private bool startWarning;
     private float timeLessVal;
     private float timeLess;
+    private bool isPause;
+    private float pauseInitPosX;
+    private float pauseInitPosY;
+
     void Start()
     {
-        oldFireRing = firstFireRing;
+        camera.transform.position = new Vector3(player.transform.position.x + 2.88f, 0, -10);
+        oldFireRing = Instantiate(fireRingPrefab, transform);
+        oldFireRing.transform.position = new Vector3(camera.transform.position.x + 5.04f, -0.68f);
         newFireRing = null;
-        gameOverPlay = false;
-        bgmPlay = true;
+        startWarning = false;
         timeLessVal = GlobalArg.fps * 16;
         timeLess = timeLessVal;
-        audio = GameObject.Find("AudioManager").GetComponent<AudioSource>();
-        audio.clip = bgm1;
-        audio.loop = true;
-        audio.Play();
+        am = GameObject.Find("AudioManager");
+        loseClipList = new AudioClip[] { die, gameOver };
+        isPause = false;
+        pauseText.SetActive(false);
+        pauseInitPosX = pauseText.transform.position.x;
+        pauseInitPosY = pauseText.transform.position.y;
+        am.GetComponent<AudioManager>().playAudioClip(BGM1, true);
     }
 
     void Update()
@@ -64,84 +75,86 @@ public class Stage1 : MonoBehaviour
             {
                 GlobalArg.time -= 10;
                 GlobalArg.playerScore[GlobalArg.playerOrder] += 10;
-                if (!audio.isPlaying)
-                {
-                    audio.clip = score;
-                    audio.loop = false;
-                    audio.Play();
-                }
             }
 
-            if (audio.isPlaying)
+            if (am.GetComponent<AudioManager>().isLoop())
+                am.GetComponent<AudioManager>().playAudioClip(applause, false);
+
+            else if (!am.GetComponent<AudioManager>().isPlaying())
             {
-                if (bgmPlay)
-                {
-                    bgmPlay = false;
-                    audio.Stop();
-                    audio.clip = applause;
-                    audio.loop = false;
-                    audio.Play();
-                }
-            }
-
-            else if (GlobalArg.time == 0)
-                SceneManager.LoadScene(1);
+                if (GlobalArg.time == 0)
+                    SceneManager.LoadScene(1);
+                else
+                    am.GetComponent<AudioManager>().playAudioClip(score, false);
+            }   
         }
 
         else if (GlobalArg.isPlayerDie)
         {
             Time.timeScale = 0;
-            if (audio.isPlaying)
-            {
-                if (bgmPlay)
-                {
-                    bgmPlay = false;
-                    audio.Stop();
-                    audio.clip = die;
-                    audio.loop = false;
-                    audio.Play();
-                }
-            }
-
-            else
-            {
-                if (!gameOverPlay)
-                {
-                    gameOverPlay = true;
-                    audio.clip = gameOver;
-                    audio.loop = false;
-                    audio.Play();
-                }
-                else
-                    SceneManager.LoadScene(1);
-            }
+            if (!am.GetComponent<AudioManager>().playAudioClipFromList(loseClipList) && !am.GetComponent<AudioManager>().isPlaying())
+                SceneManager.LoadScene(1);
         }
 
         else
         {
-            if (timeLess <= 0)
+            if (Input.GetKeyDown(GlobalArg.K_PAUSE))
             {
-                GlobalArg.time -= 10;
-                timeLess = timeLessVal;
+                if (isPause)
+                {
+                    Time.timeScale = 1;
+                    am.GetComponent<AudioManager>().play();
+                    pauseText.SetActive(false);
+                }
+
+                else
+                {
+                    Time.timeScale = 0;
+                    am.GetComponent<AudioManager>().pause();
+                    AudioSource.PlayClipAtPoint(pauseClip, transform.position);
+                    pauseText.transform.position = new Vector3(pauseInitPosX + camera.transform.position.x,
+                                                               pauseInitPosY + camera.transform.position.y);
+                    pauseText.SetActive(true);
+                }
+
+                isPause = !isPause;
             }
+
             else
-                timeLess -= Time.deltaTime;
-
-            if (oldFireRing.transform.position.x + smallFireRingDis <= camera.transform.position.x + GlobalArg.window_width / 2 && !newFireRing)
             {
-                int disRand = Random.Range(0, 10);
-                int kindRand = Random.Range(0, 10);
-                newFireRing = Instantiate(kindRand == 0 ? bonusFireRingPrefab : fireRingPrefab,
-                                          new Vector3(oldFireRing.transform.position.x + (disRand < 3 ? smallFireRingDis : bigFireRingDis),
-                                                      kindRand == 0 ? bonusFireRingPosY : fireRingPosY),
-                                          Quaternion.identity, transform);
-            }
+                if (GlobalArg.time <= GlobalArg.warningTime)
+                {
+                    if (!startWarning)
+                    {
+                        am.GetComponent<AudioManager>().playAudioClip(warningBGM1, true);
+                        startWarning = true;
+                    }
+                }
 
-            else if (oldFireRing.transform.position.x + fireRingWidth <= camera.transform.position.x - GlobalArg.window_width / 2)
-            {
-                Destroy(oldFireRing);
-                oldFireRing = newFireRing;
-                newFireRing = null;
+                if (timeLess <= 0)
+                {
+                    GlobalArg.time -= 10;
+                    timeLess = timeLessVal;
+                }
+                else
+                    timeLess -= Time.deltaTime;
+
+                if (oldFireRing.transform.position.x + smallFireRingDis + fireRingWidth / 2 <= camera.transform.position.x + GlobalArg.window_width / 2 && !newFireRing)
+                {
+                    int disRand = Random.Range(0, 10);
+                    int kindRand = Random.Range(0, 10);
+                    newFireRing = Instantiate(kindRand == 0 ? bonusFireRingPrefab : fireRingPrefab,
+                                              new Vector3(oldFireRing.transform.position.x + (disRand < 3 ? smallFireRingDis : bigFireRingDis),
+                                                          kindRand == 0 ? bonusFireRingPosY : fireRingPosY),
+                                              Quaternion.identity, transform);
+                }
+
+                else if (oldFireRing.transform.position.x + fireRingWidth / 2 <= camera.transform.position.x - GlobalArg.window_width / 2)
+                {
+                    Destroy(oldFireRing);
+                    oldFireRing = newFireRing;
+                    newFireRing = null;
+                }
             }
         }
     }

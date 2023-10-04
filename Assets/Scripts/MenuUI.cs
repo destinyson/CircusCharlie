@@ -16,7 +16,7 @@ public class MenuUI : MonoBehaviour
     private bool isStart;
     private float menuBlinkTimeVal;
     private float menuBlinkTime;
-    private AudioSource audio;
+    private GameObject am;
 
     void Start()
     {
@@ -25,7 +25,7 @@ public class MenuUI : MonoBehaviour
         isStart = false;
         menuBlinkTimeVal = GlobalArg.fps * 8;
         menuBlinkTime = 0;
-        audio = GameObject.Find("AudioManager").GetComponent<AudioSource>();
+        am = GameObject.Find("AudioManager");
 
         GlobalArg.playerLife[0] = 3;
         GlobalArg.playerLife[1] = 3;
@@ -34,6 +34,9 @@ public class MenuUI : MonoBehaviour
         GlobalArg.playerStage[0] = 1;
         GlobalArg.playerStage[1] = 1;
         GlobalArg.playerOrder = 0;
+
+        GlobalArg.playerPosX[0] = GlobalArg.playerInitPosX[0];
+        GlobalArg.playerPosX[1] = GlobalArg.playerInitPosX[1];
     }
 
     void Update()
@@ -49,8 +52,7 @@ public class MenuUI : MonoBehaviour
             {
                 isStart = true;
                 star.GetComponent<Animator>().enabled = false;
-                audio.clip = applause;
-                audio.Play();
+                am.GetComponent<AudioManager>().playAudioClip(applause, false);
             }
         }
 

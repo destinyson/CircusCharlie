@@ -10,6 +10,7 @@ TagManager:
   - Win
   - Pot
   - Ring
+  - Coin
   layers:
   - Default
   - TransparentFX

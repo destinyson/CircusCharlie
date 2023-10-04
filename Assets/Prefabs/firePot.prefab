@@ -72,7 +72,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 3
   m_Sprite: {fileID: 21300000, guid: af9dd2f232432f04195d0e322b854745, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -94,6 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8657819159887504662}
   - component: {fileID: 1531615664306209825}
+  - component: {fileID: 7643197812800037100}
   m_Layer: 0
   m_Name: firePot
   m_TagString: Pot
@@ -163,6 +164,21 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.44, y: 10}
   m_EdgeRadius: 0
+--- !u!114 &7643197812800037100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6671592215300932965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c41bf2bf6206a2e4da00b006e0cb30fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coinCount: 10
+  countTimeVal: 1.6
+  coinPrefab: {fileID: 2259595178757641510, guid: 27fa921c950f70542aadd627bdbb027f, type: 3}
 --- !u!1 &7207874862188755126
 GameObject:
   m_ObjectHideFlags: 0
