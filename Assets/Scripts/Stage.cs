@@ -68,6 +68,8 @@ public class Stage : MonoBehaviour
             {
                 GlobalArg.time -= 10;
                 GlobalArg.playerScore[GlobalArg.playerOrder] += 10;
+                if (GlobalArg.hiScore < GlobalArg.playerScore[GlobalArg.playerOrder])
+                    GlobalArg.hiScore = GlobalArg.playerScore[GlobalArg.playerOrder];
             }
 
             if (am.GetComponent<AudioManager>().isLoop())
