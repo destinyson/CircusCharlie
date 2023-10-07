@@ -1,6 +1,6 @@
 # unity复刻马戏团，目前更新第一关
 
-### [游戏下载地址](https://pan.baidu.com/s/1kQ1HnxVtPE3d9QLJBfwvSQ?pwd=08ll)
+### [游戏下载地址](链接: https://pan.baidu.com/s/1-KyuV1qc3kxxehd41E5CXA?pwd=7j15)
 
 ### 按键设定：
 
