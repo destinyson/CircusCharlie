@@ -3,209 +3,129 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Player1 : MonoBehaviour
+public class Player1 : Player
 {
-    public Animator charlieAnim;
-    public Animator lionAnim;
-    public GameObject camera;
-    public float speed;
-    public float cameraMaxPosX;
-    public float cameraMinPosX;
-    public Vector2 jumpForce;
-    public Vector3 winPosition;
-    public AudioClip jumpClip;
-    public AudioClip bonusClip;
-    public GameObject bonusText;
-    public float bonusActiveTimeVal;
+    // 狮子动画
+    private Animator lionAnim;
 
-    private float dir;
-    private bool jumpRequest;
-    private bool isGround;
-    private bool startJump;
-    private float playerCameraPosXDiff;
-    private bool passPot;
-    private bool passRing;
-    private float bonusActiveTime;
+    // 跳跃物体相关
+    public int potScore;            // 跳跃火盆分数
+    public int ringScore;           // 跳跃火圈分数
+    public int doubleScore;         // 两个一起跳分数
 
-    private GlobalArg.playerState state;
+    private bool passPot;           // 是否跳跃火盆
+    private bool passRing;          // 是否跳跃火圈
 
-    void Awake()
+    // 奖励相关
+    public int moneyScore;          // 钱袋分数
+    public int coinScore;           // 金币分数
+    public int coinCount;           // 金币所需跳跃次数
+    public float coinInitPosY;      // 金币初始纵坐标
+    public GameObject coinPrefab;   // 金币预制体
+
+    private bool hasCoin;           // 是否已经生成过金币
+    private GameObject coin;        // 金币实体
+
+    protected override void Awake()
     {
-        dir = 0;
-        jumpRequest = false;
-        isGround = true;
-        startJump = false;
-        playerCameraPosXDiff = transform.position.x;
+        // 调用父类Awake方法
+        base.Awake();
+
+        // 关卡状态初始化
         passPot = false;
         passRing = false;
-        state = GlobalArg.playerState.stand;
-        bonusText.SetActive(false);
-        bonusActiveTime = bonusActiveTimeVal;
-        transform.position = new Vector3(GlobalArg.playerPosX[GlobalArg.playerOrder], -2.7f);
+
+        // 查理与狮子动画指定
+        charlieAnim = GameObject.Find("charlie").GetComponent<Animator>();
+        lionAnim = GameObject.Find("lion").GetComponent<Animator>();
+
+        hasCoin = false;
     }
 
-    void Update()
+    protected override void Update()
     {
-        if (bonusText.activeSelf)
-        {
-            if (bonusActiveTime <= 0)
-            {
-                bonusText.SetActive(false);
-                bonusActiveTime = bonusActiveTimeVal;
-            }
+        base.Update();
 
-            else
-                bonusActiveTime -= Time.deltaTime;
+        // 处理金币，如果掉落回一定高度就销毁
+        if (coin != null && coin.transform.position.y < coinInitPosY)
+        {
+            Destroy(coin);
+            coin = null;
         }
 
-        if (state == GlobalArg.playerState.win)
-            win();
-        else if (state == GlobalArg.playerState.die)
-            die();
-
-        else if (GlobalArg.time == 0)
-            state = GlobalArg.playerState.die;
-
-        else if (startJump)
+        // 跳火盆/火圈得分处理
+        if (state != GlobalArg.playerState.die)
         {
-            if (!isGround)
-                startJump = false;
-        }
-
-        else
-        {
-            if (isGround)
+            if (state == GlobalArg.playerState.win || (!startJump && isGround))
             {
-                jumpRequest = Input.GetKeyDown(GlobalArg.K_JUMP);
+                if (passPot && passRing)
+                    addScore(doubleScore, false, new Vector3(0, 0));
+                else if (passPot)
+                    addScore(potScore, false, new Vector3(0, 0));
+                else if (passRing)
+                    addScore(ringScore, false, new Vector3(0, 0));
 
-                if (jumpRequest)
-                    jump();
-
-                else
-                {
-                    if (passPot && passRing)
-                        GlobalArg.playerScore[GlobalArg.playerOrder] += 400;
-                    else if (passPot)
-                        GlobalArg.playerScore[GlobalArg.playerOrder] += 200;
-                    else if (passRing)
-                        GlobalArg.playerScore[GlobalArg.playerOrder] += 100;
-                    if (GlobalArg.hiScore < GlobalArg.playerScore[GlobalArg.playerOrder])
-                        GlobalArg.hiScore = GlobalArg.playerScore[GlobalArg.playerOrder];
-                    passPot = false;
-                    passRing = false;
-
-                    dir = Input.GetAxisRaw("Horizontal");
-                    if (dir < 0)
-                        backward();
-                    else if (dir > 0)
-                        forward();
-                    else
-                        stand();
-                }
+                passPot = false;
+                passRing = false;
             }
         }
-
-        transform.Translate(Vector2.right * dir * speed * Time.deltaTime);
-
-        float cameraTheoryPosX = transform.position.x - playerCameraPosXDiff;
-        if (cameraTheoryPosX <= cameraMinPosX)
-            cameraTheoryPosX = cameraMinPosX;
-        if (cameraTheoryPosX >= cameraMaxPosX)
-            cameraTheoryPosX = cameraMaxPosX;
-        camera.transform.position = new Vector3(cameraTheoryPosX, camera.transform.position.y, camera.transform.position.z);
     }
 
-    void stand()
+    // stand方法，调用父类同名方法，随后更新狮子动画，下面forward、backward、jump、win和die方法同理
+    protected override void stand()
     {
-        if (state != GlobalArg.playerState.stand)
-        {
-            state = GlobalArg.playerState.stand;
+        base.stand();
 
-            charlieAnim.SetInteger("h", 0);
-            lionAnim.SetBool("jump", false);
-            lionAnim.SetInteger("h", 0);
-        }
-    }
-
-    void forward()
-    {
-        if (state != GlobalArg.playerState.forward)
-        {
-            state = GlobalArg.playerState.forward;
-
-            charlieAnim.SetInteger("h", 1);
-            lionAnim.SetBool("jump", false);
-            lionAnim.SetInteger("h", 1);
-        }
-    }
-
-    void backward()
-    {
-        if (state != GlobalArg.playerState.backward)
-        {
-            state = GlobalArg.playerState.backward;
-
-            charlieAnim.SetInteger("h", -1);
-            lionAnim.SetBool("jump", false);
-            lionAnim.SetInteger("h", -1);
-        }
-    }
-
-    void jump()
-    {
-        if (state != GlobalArg.playerState.jump)
-        {
-            state = GlobalArg.playerState.jump;
-            AudioSource.PlayClipAtPoint(jumpClip, transform.position);
-            startJump = true;
-            GetComponent<Rigidbody2D>().AddForce(jumpForce);
-
-            charlieAnim.SetInteger("h", 0);
-            lionAnim.SetBool("jump", true);
-            lionAnim.SetInteger("h", 0);
-        }
-    }
-
-    void die()
-    {
-        GlobalArg.isPlayerDie = true;
-
-        if (GlobalArg.time > 0)
-        {
-            charlieAnim.SetTrigger("die");
-            lionAnim.SetTrigger("die");
-        }
-
-        int passSignCount = (int)((transform.position.x - GlobalArg.playerInitPosX[GlobalArg.playerOrder]) / 10.24f);
-        GlobalArg.playerPosX[GlobalArg.playerOrder] = GlobalArg.playerInitPosX[GlobalArg.playerOrder] + passSignCount * 10.24f;
-    }
-
-    void win()
-    {
-        transform.position = winPosition;
-        GlobalArg.isPlayerWin = true;
-
-        charlieAnim.SetTrigger("win");
         lionAnim.SetBool("jump", false);
         lionAnim.SetInteger("h", 0);
-
-        GlobalArg.playerPosX[GlobalArg.playerOrder] = GlobalArg.playerInitPosX[GlobalArg.playerOrder];
     }
 
-    private void OnCollisionStay2D(Collision2D collision)
+    protected override void forward()
     {
-        if (collision.collider.tag == "Win")
-            state = GlobalArg.playerState.win;
-        else if (collision.collider.tag == "Danger")
+        base.forward();
+
+        lionAnim.SetBool("jump", false);
+        lionAnim.SetInteger("h", 1);
+    }
+
+    protected override void backward()
+    {
+        base.backward();
+
+        lionAnim.SetBool("jump", false);
+        lionAnim.SetInteger("h", -1);
+    }
+
+    protected override void jump()
+    {
+        base.jump();
+
+        lionAnim.SetBool("jump", true);
+        lionAnim.SetInteger("h", 0);
+    }
+
+    protected override void die()
+    {
+        base.die();
+
+        if (GlobalArg.time > 0)
+            lionAnim.SetTrigger("die");
+    }
+
+    protected override void win()
+    {
+        base.win();
+
+        lionAnim.SetBool("jump", false);
+        lionAnim.SetInteger("h", 0);
+    }
+
+    protected override void OnCollisionStay2D(Collision2D collision)
+    {
+        base.OnCollisionStay2D(collision);
+
+        if (collision.collider.tag == "Fire")
             state = GlobalArg.playerState.die;
-        else if (collision.collider.tag == "Ground")
-            isGround = true;
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.collider.tag == "Ground")
-            isGround = false;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -213,25 +133,13 @@ public class Player1 : MonoBehaviour
         if (collision.tag == "Bonus")
         {
             Destroy(collision.gameObject);
-            AudioSource.PlayClipAtPoint(bonusClip, transform.position);
-            GlobalArg.playerScore[GlobalArg.playerOrder] += 500;
-            bonusText.transform.position = collision.gameObject.transform.position;
-            bonusText.GetComponent<Text>().text = "500";
-            bonusText.SetActive(true);
-            if (GlobalArg.hiScore < GlobalArg.playerScore[GlobalArg.playerOrder])
-                GlobalArg.hiScore = GlobalArg.playerScore[GlobalArg.playerOrder];
+            addScore(500, true, collision.gameObject.transform.position);
         }
 
         if (collision.tag == "Coin")
         {
             Destroy(collision.gameObject);
-            AudioSource.PlayClipAtPoint(bonusClip, transform.position);
-            GlobalArg.playerScore[GlobalArg.playerOrder] += 5000;
-            bonusText.transform.position = collision.gameObject.transform.position;
-            bonusText.GetComponent<Text>().text = "5000";
-            bonusText.SetActive(true);
-            if (GlobalArg.hiScore < GlobalArg.playerScore[GlobalArg.playerOrder])
-                GlobalArg.hiScore = GlobalArg.playerScore[GlobalArg.playerOrder];
+            addScore(5000, true, collision.gameObject.transform.position);
         }
     }
 
@@ -240,7 +148,15 @@ public class Player1 : MonoBehaviour
         if (collision.tag == "Pot")
         {
             passPot = true;
-            collision.SendMessage("addCount");
+            if (!hasCoin)
+            {
+                collision.SendMessage("addCount");
+                if (collision.gameObject.GetComponent<FirePot>().getCount() >= coinCount)
+                {
+                    GameObject coin = Instantiate(coinPrefab, collision.gameObject.transform);
+                    hasCoin = true;
+                }
+            }  
         }
             
         if (collision.tag == "Ring")

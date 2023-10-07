@@ -33,10 +33,9 @@ public class MenuUI : MonoBehaviour
         GlobalArg.playerScore[1] = 0;
         GlobalArg.playerStage[0] = 1;
         GlobalArg.playerStage[1] = 1;
+        GlobalArg.playerPassCount[0] = 0;
+        GlobalArg.playerPassCount[1] = 0;
         GlobalArg.playerOrder = 0;
-
-        GlobalArg.playerPosX[0] = GlobalArg.playerInitPosX[0];
-        GlobalArg.playerPosX[1] = GlobalArg.playerInitPosX[1];
     }
 
     void Update()

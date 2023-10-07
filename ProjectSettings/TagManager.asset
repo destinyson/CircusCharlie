@@ -4,18 +4,19 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Danger
   - Bonus
   - Ground
   - Win
   - Pot
   - Ring
   - Coin
+  - Fire
+  - Monkey
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Remains
   - Water
   - UI
   - 

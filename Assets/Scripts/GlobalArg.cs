@@ -19,12 +19,11 @@ public class GlobalArg : MonoBehaviour
     public static int[] playerLife = {3, 3};
     public static int[] playerScore = {0, 0};
     public static int[] playerStage = {1, 1};
+    public static int[] playerPassCount = {0, 0};
     public static int hiScore = 20000;
     public static int time = 5000;
     public static int warningTime = 1000;
     public static int playerOrder = 0;
-    public static float[] playerInitPosX = { -2.88f, -2.88f };
-    public static float[] playerPosX = { -2.88f, -2.88f };
 
     public enum playerState { stand, forward, backward, jump, die, win};
     public static bool isPlayerWin = false;

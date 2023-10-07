@@ -3,58 +3,40 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class Stage1 : MonoBehaviour
+public class Stage1 : Stage
 {
-    public GameObject camera;
-    public GameObject player;
-    public GameObject fireRingPrefab;
-    public GameObject bonusFireRingPrefab;
-    public Animator[] audienceAnim;
-    public float bigFireRingDis;
-    public float smallFireRingDis;
-    public float fireRingWidth;
-    public float fireRingPosY;
-    public float bonusFireRingPosY;
-    public AudioClip BGM1;
-    public AudioClip warningBGM1;
-    public AudioClip die;
-    public AudioClip gameOver;
-    public AudioClip applause;
-    public AudioClip score;
-    public AudioClip pauseClip;
-    public GameObject pauseText;
+    // 火圈参数
+    public float bigFireRingDis;                // 火圈间距较大值
+    public float smallFireRingDis;              // 火圈间距较小值
+    public float fireRingWidth;                 // 火圈宽度
+    public float fireRingPosY;                  // 普通火圈高度
+    public float bonusFireRingPosY;             // 钱袋火圈高度
+    public float fireRingInitPosX;              // 第一个火圈横向坐标
 
-    private AudioClip[] loseClipList;
-    private GameObject oldFireRing;
-    private GameObject newFireRing;
-    private GameObject am;
-    private bool startWarning;
-    private float timeLessVal;
-    private float timeLess;
-    private bool isPause;
-    private float pauseInitPosX;
-    private float pauseInitPosY;
+    // 火圈素材与实体
+    public GameObject fireRingPrefab;           // 普通火圈预制体
+    public GameObject bonusFireRingPrefab;      // 钱袋火圈预制体
 
-    void Start()
+    private GameObject oldFireRing;             // 旧火圈实体
+    private GameObject newFireRing;             // 新火圈实体
+
+    protected override void Start()
     {
-        camera.transform.position = new Vector3(player.transform.position.x + 2.88f, 0, -10);
+        base.Start();
+
+        // 第一个火圈生成与位置设定，赋给旧火圈，新火圈赋值null
         oldFireRing = Instantiate(fireRingPrefab, transform);
-        oldFireRing.transform.position = new Vector3(camera.transform.position.x + 5.04f, -0.68f);
+        oldFireRing.transform.position = new Vector3(camera.transform.position.x + fireRingInitPosX, fireRingPosY);
         newFireRing = null;
-        startWarning = false;
-        timeLessVal = GlobalArg.fps * 16;
-        timeLess = timeLessVal;
-        am = GameObject.Find("AudioManager");
+
+        // 失败音效序列
         loseClipList = new AudioClip[] { die, gameOver };
-        isPause = false;
-        pauseText.SetActive(false);
-        pauseInitPosX = pauseText.transform.position.x;
-        pauseInitPosY = pauseText.transform.position.y;
-        am.GetComponent<AudioManager>().playAudioClip(BGM1, true);
     }
 
-    void Update()
+    protected override void Update()
     {
+        base.Update();
+
         if (GlobalArg.isPlayerWin)
         {
             if (oldFireRing)
@@ -67,78 +49,12 @@ public class Stage1 : MonoBehaviour
                 Destroy(newFireRing);
                 newFireRing = null;
             }
-
-            for (int i = 0; i < audienceAnim.Length; ++i)
-                audienceAnim[i].SetTrigger("win");
-
-            if (GlobalArg.time > 0)
-            {
-                GlobalArg.time -= 10;
-                GlobalArg.playerScore[GlobalArg.playerOrder] += 10;
-            }
-
-            if (am.GetComponent<AudioManager>().isLoop())
-                am.GetComponent<AudioManager>().playAudioClip(applause, false);
-
-            else if (!am.GetComponent<AudioManager>().isPlaying())
-            {
-                if (GlobalArg.time == 0)
-                    SceneManager.LoadScene(1);
-                else
-                    am.GetComponent<AudioManager>().playAudioClip(score, false);
-            }   
         }
 
-        else if (GlobalArg.isPlayerDie)
+        else if (!GlobalArg.isPlayerDie)
         {
-            Time.timeScale = 0;
-            if (!am.GetComponent<AudioManager>().playAudioClipFromList(loseClipList) && !am.GetComponent<AudioManager>().isPlaying())
-                SceneManager.LoadScene(1);
-        }
-
-        else
-        {
-            if (Input.GetKeyDown(GlobalArg.K_PAUSE))
+            if (!isPause)
             {
-                if (isPause)
-                {
-                    Time.timeScale = 1;
-                    am.GetComponent<AudioManager>().play();
-                    pauseText.SetActive(false);
-                }
-
-                else
-                {
-                    Time.timeScale = 0;
-                    am.GetComponent<AudioManager>().pause();
-                    AudioSource.PlayClipAtPoint(pauseClip, transform.position);
-                    pauseText.transform.position = new Vector3(pauseInitPosX + camera.transform.position.x,
-                                                               pauseInitPosY + camera.transform.position.y);
-                    pauseText.SetActive(true);
-                }
-
-                isPause = !isPause;
-            }
-
-            else
-            {
-                if (GlobalArg.time <= GlobalArg.warningTime)
-                {
-                    if (!startWarning)
-                    {
-                        am.GetComponent<AudioManager>().playAudioClip(warningBGM1, true);
-                        startWarning = true;
-                    }
-                }
-
-                if (timeLess <= 0)
-                {
-                    GlobalArg.time -= 10;
-                    timeLess = timeLessVal;
-                }
-                else
-                    timeLess -= Time.deltaTime;
-
                 if (oldFireRing.transform.position.x + smallFireRingDis + fireRingWidth / 2 <= camera.transform.position.x + GlobalArg.window_width / 2 && !newFireRing)
                 {
                     int disRand = Random.Range(0, 10);

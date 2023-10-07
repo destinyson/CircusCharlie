@@ -176,9 +176,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c41bf2bf6206a2e4da00b006e0cb30fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinCount: 10
   countTimeVal: 1.6
-  coinPrefab: {fileID: 2259595178757641510, guid: 27fa921c950f70542aadd627bdbb027f, type: 3}
 --- !u!1 &7207874862188755126
 GameObject:
   m_ObjectHideFlags: 0
@@ -193,7 +191,7 @@ GameObject:
   - component: {fileID: 8642583272126614614}
   m_Layer: 0
   m_Name: fire
-  m_TagString: Danger
+  m_TagString: Fire
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
