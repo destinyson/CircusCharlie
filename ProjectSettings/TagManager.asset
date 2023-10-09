@@ -12,6 +12,7 @@ TagManager:
   - Coin
   - Fire
   - Monkey
+  - Ball
   layers:
   - Default
   - TransparentFX

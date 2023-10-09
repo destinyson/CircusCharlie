@@ -645,6 +645,7 @@ MonoBehaviour:
   stageList:
   - {fileID: 2441351959061186317, guid: 6f6cd4081980c29478a9d103aa3753d7, type: 3}
   - {fileID: 4177404564989402089, guid: 50fd8be0a54267c4e8e3d1c13658212d, type: 3}
+  - {fileID: 443141586134784984, guid: 68b089ed753b09e4c99e15c60fa64f33, type: 3}
 --- !u!4 &1029505817
 Transform:
   m_ObjectHideFlags: 0

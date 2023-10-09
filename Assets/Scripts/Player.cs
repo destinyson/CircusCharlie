@@ -48,7 +48,7 @@ public class Player : MonoBehaviour
         state = GlobalArg.playerState.stand;
         startJump = false;
         jumpRequest = false;
-        isGround = false;
+        isGround = true;
         dir = 0;
         // 摄像机实体获取与位置设定
         camera = GameObject.Find("Main Camera");
@@ -167,7 +167,7 @@ public class Player : MonoBehaviour
         state = GlobalArg.playerState.stand;
 
         charlieAnim.SetInteger("h", 0);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 2 != 0)
+        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
             charlieAnim.SetBool("jump", false);
     }
 
@@ -176,7 +176,7 @@ public class Player : MonoBehaviour
         state = GlobalArg.playerState.forward;
 
         charlieAnim.SetInteger("h", 1);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 2 != 0)
+        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
             charlieAnim.SetBool("jump", false);
     }
 
@@ -185,7 +185,7 @@ public class Player : MonoBehaviour
         state = GlobalArg.playerState.backward;
 
         charlieAnim.SetInteger("h", -1);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 2 != 0)
+        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
             charlieAnim.SetBool("jump", false);
     }
 
@@ -204,7 +204,7 @@ public class Player : MonoBehaviour
 
         // 切换玩家动画
         charlieAnim.SetInteger("h", 0);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 2 != 0)
+        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
             charlieAnim.SetBool("jump", true);
     }
 
@@ -227,7 +227,7 @@ public class Player : MonoBehaviour
         GlobalArg.isPlayerDie = true;
 
         // 若非时间耗尽死亡，则切换玩家动画
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 2 != 1)
+        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 1)
         {
             if (GlobalArg.time > 0)
                 charlieAnim.SetTrigger("die");
@@ -245,7 +245,7 @@ public class Player : MonoBehaviour
             isGround = true;
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    protected virtual void OnCollisionExit2D(Collision2D collision)
     {
         if (collision.collider.tag == "Ground")
             isGround = false;

@@ -55,7 +55,7 @@ public class Stage1 : Stage
         {
             if (!isPause)
             {
-                if (oldFireRing.transform.position.x + smallFireRingDis + fireRingWidth / 2 <= camera.transform.position.x + GlobalArg.window_width / 2 && !newFireRing)
+                if (oldFireRing.transform.position.x + smallFireRingDis - fireRingWidth / 2 <= camera.transform.position.x + GlobalArg.window_width / 2 && !newFireRing)
                 {
                     int disRand = Random.Range(0, 10);
                     int kindRand = Random.Range(0, 10);
