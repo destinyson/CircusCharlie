@@ -8,6 +8,14 @@ public class FireRing : MonoBehaviour
 
     void Update()
     {
-        transform.Translate(Vector2.left * speed * Time.deltaTime);
+        if (!GlobalArg.isPlayerDie)
+            transform.Translate(Vector2.left * speed * Time.deltaTime);
+    }
+
+    public void stop()
+    {
+        transform.Find("left").GetComponent<Animator>().speed = 0;
+        transform.Find("right").GetComponent<Animator>().speed = 0;
+        transform.Find("bottom").GetComponent<Animator>().speed = 0;
     }
 }

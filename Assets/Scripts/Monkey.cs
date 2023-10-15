@@ -12,13 +12,10 @@ public class Monkey : MonoBehaviour
     private bool startJump;
     private bool isGround;
 
-    private void Start()
+    private void Awake()
     {
         startJump = false;
         isGround = true;
-
-        if (isBonus)
-            Invoke("jump", 1.2f);
     }
 
     void Update()
@@ -35,8 +32,8 @@ public class Monkey : MonoBehaviour
                 GetComponent<Animator>().SetBool("jump", false);
         }
         
-        transform.Translate(Vector2.left * speed * Time.deltaTime);
-
+        if (!GlobalArg.isPlayerDrop && !GlobalArg.isPlayerDie)
+            transform.Translate(Vector2.left * speed * Time.deltaTime);
     }
 
     void jump()
@@ -49,13 +46,19 @@ public class Monkey : MonoBehaviour
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Platform")
             isGround = true;
+        if (collision.collider.tag == "Monkey")
+        {
+            if (isBonus && isGround && !startJump)
+                jump();
+        }
+
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Platform")
             isGround = false;
     }
 }

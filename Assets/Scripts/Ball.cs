@@ -4,36 +4,42 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
-    public float scrollSpeed;
-    public float moveSpeed;
+    // 皮球信息
+    public float scrollSpeed;       // 皮球慢慢滚动速度
+    public float moveSpeed;         // 皮球借力移动速度
 
-    public enum ballState { scroll, stand, forward, backward, backrun, forrun };
-    public ballState state;
-    public int dir;
+    public enum ballState { scroll, stand, forward, backward, backrun, forrun };    // 皮球状态种类
+    public ballState state;                                                         // 皮球状态
 
-    private GameObject player;
+    private GameObject player;      // 玩家实体
 
     void Awake()
     {
+        // 皮球状态初始化为慢慢滚动
         state = ballState.scroll;
 
+        // 获取玩家实体
         player = GameObject.Find("player");
-        dir = -1;
     }
     
     void Update()
     {
         switch (state)
         {
-            case ballState.stand: dir = 0; transform.position = new Vector3(player.transform.position.x, transform.position.y); break;
-            case ballState.forward: dir = 1; transform.position = new Vector3(player.transform.position.x, transform.position.y); break;
-            case ballState.backward: dir = -1; transform.position = new Vector3(player.transform.position.x, transform.position.y); break;
-            case ballState.scroll: dir = -1; transform.Translate(Vector2.left * scrollSpeed * Time.deltaTime); break;
-            case ballState.backrun: dir = -1; transform.Translate(Vector2.left * moveSpeed * Time.deltaTime); break;
-            case ballState.forrun: dir = 1; transform.Translate(Vector2.right * moveSpeed * Time.deltaTime); break;
+            // 前三种状态皮球跟随玩家
+            case ballState.stand: 
+            case ballState.forward: 
+            case ballState.backward: transform.position = new Vector3(player.transform.position.x, transform.position.y); break;
+            // 皮球慢慢滚动
+            case ballState.scroll: transform.Translate(Vector2.left * scrollSpeed * Time.deltaTime); break;
+            // 皮球向后快速滚动
+            case ballState.backrun: transform.Translate(Vector2.left * moveSpeed * Time.deltaTime); break;
+            // 皮球向前快速滚动
+            case ballState.forrun: transform.Translate(Vector2.right * moveSpeed * Time.deltaTime); break;
             default: break;
         }
         
+        // 皮球动画设置
         switch (state)
         {
             case ballState.stand:
@@ -54,6 +60,7 @@ public class Ball : MonoBehaviour
                     GetComponent<Animator>().SetInteger("h", -1);
                     break;
                 }
+            // 皮球快速滚动时设置物体所在层保证不与其他物体碰撞
             case ballState.backrun:
                 {
                     GetComponent<Animator>().SetTrigger("kick");
@@ -74,20 +81,24 @@ public class Ball : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // 两皮球相撞
         if (collision.tag == "Ball" && gameObject.layer != LayerMask.NameToLayer("Remains") &&
             collision.gameObject.transform.parent.gameObject.layer != LayerMask.NameToLayer("Remains"))
         {
-            if (dir >= 0)
+            // 如果是从右边撞的，自身向后滚，对方向前滚
+            if (collision.bounds.ClosestPoint(transform.position).x > 0)
             {
                 state = ballState.backrun;
                 collision.gameObject.transform.parent.gameObject.GetComponent<Ball>().state = ballState.forrun;
             }
+            // 否则自身向前滚，对方向后滚
             else
             {
                 state = ballState.forrun;
                 collision.gameObject.transform.parent.gameObject.GetComponent<Ball>().state = ballState.backrun;
             }
 
+            // 设置物体所在层保证不与其他物体碰撞
             gameObject.layer = LayerMask.NameToLayer("Remains");
             collision.gameObject.transform.parent.gameObject.layer = LayerMask.NameToLayer("Remains");
         }

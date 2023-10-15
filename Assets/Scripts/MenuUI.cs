@@ -6,13 +6,10 @@ using UnityEngine.SceneManagement;
 public class MenuUI : MonoBehaviour
 {
     public GameObject star;
-    public GameObject option;
-    public GameObject[] menu;
+    public GameObject menu;
     public int menuBlinkCount;
     public AudioClip applause;
 
-    private float optionPosX;
-    private float optionPosY;
     private bool isStart;
     private float menuBlinkTimeVal;
     private float menuBlinkTime;
@@ -20,38 +17,29 @@ public class MenuUI : MonoBehaviour
 
     void Start()
     {
-        optionPosX = option.transform.position.x;
-        optionPosY = option.transform.position.y;
         isStart = false;
         menuBlinkTimeVal = GlobalArg.fps * 8;
         menuBlinkTime = 0;
         am = GameObject.Find("AudioManager");
 
-        GlobalArg.playerLife[0] = 3;
-        GlobalArg.playerLife[1] = 3;
-        GlobalArg.playerScore[0] = 0;
-        GlobalArg.playerScore[1] = 0;
-        GlobalArg.playerStage[0] = 1;
-        GlobalArg.playerStage[1] = 1;
-        GlobalArg.playerPassCount[0] = 0;
-        GlobalArg.playerPassCount[1] = 0;
-        GlobalArg.playerOrder = 0;
+        GlobalArg.playerLife = 3;
+        GlobalArg.playerScore = 0;
+        GlobalArg.playerStage = 1;
+        GlobalArg.playerPassCount = 0;
+        GlobalArg.addLifeScore = 20000;
     }
 
     void Update()
     {
         if (!isStart)
         {
-            if (Input.GetKeyDown(GlobalArg.K_SELECT))
-            {
-                GlobalArg.mode = (GlobalArg.mode + 1) % 4;
-                option.transform.position = new Vector3(optionPosX, optionPosY - 0.32f * GlobalArg.mode, 0);
-            }
-            else if (Input.GetKeyDown(KeyCode.Return))
+            if (Input.GetKeyDown(KeyCode.Return))
             {
                 isStart = true;
                 star.GetComponent<Animator>().enabled = false;
-                am.GetComponent<AudioManager>().playAudioClip(applause, false);
+                am.GetComponent<AudioSource>().clip = applause;
+                am.GetComponent<AudioSource>().loop = false;
+                am.GetComponent<AudioSource>().Play();
             }
         }
 
@@ -61,7 +49,7 @@ public class MenuUI : MonoBehaviour
             {
                 if (menuBlinkTime <= 0)
                 {
-                    menu[GlobalArg.mode].SetActive(!menu[GlobalArg.mode].activeSelf);
+                    menu.SetActive(!menu.activeSelf);
                     menuBlinkTime = menuBlinkTimeVal;
                     --menuBlinkCount;
                 }

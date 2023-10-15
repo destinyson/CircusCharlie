@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
+// 整体上与前两关生成物体逻辑类似
 public class Stage3 : Stage
 {
     public GameObject ballPrefab;
@@ -19,15 +19,12 @@ public class Stage3 : Stage
         GameObject ball = Instantiate(ballPrefab, transform);
         ball.transform.position = new Vector3(camera.transform.position.x + ballInitPos.x, ballInitPos.y);
         ball.GetComponent<Ball>().state = Ball.ballState.stand;
-        ball.GetComponent<Ball>().dir = 0;
         ballList = new LinkedList<GameObject>();
         ballList.AddLast(ball);
 
         GameObject firstBall = Instantiate(ballPrefab, transform);
         firstBall.transform.position = new Vector3(camera.transform.position.x + firstBallPos.x, firstBallPos.y);
         ballList.AddLast(firstBall);
-
-        loseClipList = new AudioClip[] { die, gameOver };
     }
 
     protected override void Update()
@@ -51,8 +48,7 @@ public class Stage3 : Stage
             {
                 if (ballList.Last.Value.transform.position.x + 1.4f <= camera.transform.position.x + GlobalArg.window_width / 2)
                 {
-                    
-                    int rand = UnityEngine.Random.Range(1, 6);
+                    int rand = Random.Range(1, 6);
                     float dis = rand * 0.8f + 1.04f;
                     GameObject ball = Instantiate(ballPrefab, transform);
                     ball.transform.position = new Vector3(ballList.Last.Value.transform.position.x + dis, ballInitPos.y);

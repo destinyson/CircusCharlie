@@ -13,6 +13,7 @@ public class Player : MonoBehaviour
 
     // 玩家节点动作
     public float speed;                         // 玩家移动速度
+    public float dropSpeed;                     // 玩家掉落速度
     public Vector2 jumpForce;                   // 玩家跳跃的力
 
     protected GlobalArg.playerState state;      // 玩家状态
@@ -42,7 +43,9 @@ public class Player : MonoBehaviour
     protected virtual void Awake()
     {
         // 玩家位置设定
-        transform.position = new Vector3(GlobalArg.playerPassCount[GlobalArg.playerOrder] * 10.24f + initPos.x, initPos.y);
+        // 第五关玩家位置视绳头位置而定，并不确定
+        if ((GlobalArg.playerStage - 1) % 5 != 4)
+            transform.position = new Vector3(GlobalArg.playerPassCount * 10.24f + initPos.x, initPos.y);
 
         // 玩家状态设定
         state = GlobalArg.playerState.stand;
@@ -50,9 +53,14 @@ public class Player : MonoBehaviour
         jumpRequest = false;
         isGround = true;
         dir = 0;
+        charlieAnim = GetComponent<Animator>();
+
         // 摄像机实体获取与位置设定
         camera = GameObject.Find("Main Camera");
-        camera.transform.position = new Vector3(transform.position.x + cameraPlayerMinDis, 0, -10);
+        // 第五关摄像机位置并不完全取决于玩家
+        if ((GlobalArg.playerStage - 1) % 5 != 4)
+            camera.transform.position = new Vector3(transform.position.x + cameraPlayerMinDis, 0, -10);
+
         // 奖励得分文本隐藏，其显示剩余时间初始化为显示时间阈值
         bonusText.SetActive(false);
         bonusActiveTime = bonusActiveTimeVal;
@@ -72,7 +80,10 @@ public class Player : MonoBehaviour
 
             // 否则显示剩余时间减少
             else
+            {
+                bonusText.transform.position = new Vector3(transform.position.x, bonusText.transform.position.y);
                 bonusActiveTime -= Time.deltaTime;
+            }
         }
 
         // 如果玩家获胜，执行win()
@@ -82,6 +93,10 @@ public class Player : MonoBehaviour
         // 如果玩家死亡，执行die()
         else if (state == GlobalArg.playerState.die)
             die();
+
+        // 如果玩家掉落，执行drop()
+        else if (state == GlobalArg.playerState.drop)
+            drop();
 
         // 如果关卡时间耗尽，玩家状态切换为die
         else if (GlobalArg.time == 0)
@@ -98,7 +113,7 @@ public class Player : MonoBehaviour
                     startJump = false;
             }
 
-            else
+            else if ((GlobalArg.playerStage - 1) % 5 != 3)
             {
                 // 否则，如果玩家在地面上
                 if (isGround)
@@ -122,52 +137,57 @@ public class Player : MonoBehaviour
                 }
             }
 
-            // 根据玩家方向移动玩家横向坐标
-            transform.Translate(Vector2.right * dir * speed * Time.deltaTime);
-            if (transform.position.x < minPosX)
-                transform.position = new Vector3(minPosX, transform.position.y);
-            if (transform.position.x > maxPosX)
-                transform.position = new Vector3(maxPosX, transform.position.y);
-
-            // 摄像机移动，如果玩家没有横向移动，摄像机不需要移动
-            if (dir != 0)
+            if ((GlobalArg.playerStage - 1) % 5 != 3 && (GlobalArg.playerStage - 1) % 5 != 4)
             {
-                // 如果玩家向左移动，玩家与摄像机距离不得大于最大距离阈值，否则摄像机需要移动
-                if (dir < 0 && camera.transform.position.x > transform.position.x + cameraPlayerMaxDis)
-                {
-                    float cameraTheoryPosX = transform.position.x + cameraPlayerMaxDis;
-                    // 摄像机本身也有横向坐标范围
-                    if (cameraTheoryPosX <= cameraMinPosX)
-                        cameraTheoryPosX = cameraMinPosX;
-                    if (cameraTheoryPosX >= cameraMaxPosX)
-                        cameraTheoryPosX = cameraMaxPosX;
-                    // 更新摄像机位置
-                    camera.transform.position = new Vector3(cameraTheoryPosX, camera.transform.position.y, camera.transform.position.z);
-                }
+                // 根据玩家方向移动玩家横向坐标
+                transform.Translate(Vector2.right * dir * speed * Time.deltaTime);
 
-                // 如果玩家向右移动，玩家与摄像机距离不得小于最小距离阈值，否则摄像机需要移动
-                else if (dir > 0 && camera.transform.position.x < transform.position.x + cameraPlayerMinDis)
+                if (transform.position.x < minPosX)
+                    transform.position = new Vector3(minPosX, transform.position.y);
+                if (transform.position.x > maxPosX)
+                    transform.position = new Vector3(maxPosX, transform.position.y);
+
+                // 摄像机移动，如果玩家没有横向移动，摄像机不需要移动
+                if (dir != 0)
                 {
-                    float cameraTheoryPosX = transform.position.x + cameraPlayerMinDis;
-                    // 摄像机本身也有横向坐标范围
-                    if (cameraTheoryPosX <= cameraMinPosX)
-                        cameraTheoryPosX = cameraMinPosX;
-                    if (cameraTheoryPosX >= cameraMaxPosX)
-                        cameraTheoryPosX = cameraMaxPosX;
-                    // 更新摄像机位置
-                    camera.transform.position = new Vector3(cameraTheoryPosX, camera.transform.position.y, camera.transform.position.z);
+                    // 如果玩家向左移动，玩家与摄像机距离不得大于最大距离阈值，否则摄像机需要移动
+                    if (dir < 0 && camera.transform.position.x > transform.position.x + cameraPlayerMaxDis)
+                    {
+                        float cameraTheoryPosX = transform.position.x + cameraPlayerMaxDis;
+                        // 摄像机本身也有横向坐标范围
+                        if (cameraTheoryPosX <= cameraMinPosX)
+                            cameraTheoryPosX = cameraMinPosX;
+                        if (cameraTheoryPosX >= cameraMaxPosX)
+                            cameraTheoryPosX = cameraMaxPosX;
+                        // 更新摄像机位置
+                        camera.transform.position = new Vector3(cameraTheoryPosX, camera.transform.position.y, camera.transform.position.z);
+                    }
+
+                    // 如果玩家向右移动，玩家与摄像机距离不得小于最小距离阈值，否则摄像机需要移动
+                    else if (dir > 0 && camera.transform.position.x < transform.position.x + cameraPlayerMinDis)
+                    {
+                        float cameraTheoryPosX = transform.position.x + cameraPlayerMinDis;
+                        // 摄像机本身也有横向坐标范围
+                        if (cameraTheoryPosX <= cameraMinPosX)
+                            cameraTheoryPosX = cameraMinPosX;
+                        if (cameraTheoryPosX >= cameraMaxPosX)
+                            cameraTheoryPosX = cameraMaxPosX;
+                        // 更新摄像机位置
+                        camera.transform.position = new Vector3(cameraTheoryPosX, camera.transform.position.y, camera.transform.position.z);
+                    }
                 }
             }
         }
     }
 
     // stand方法，切换玩家状态为stand，并切换玩家对应动画，下面forward方法和backward方法同理
+    // 第一关查理动画没有jump参数，下面同理
     protected virtual void stand()
     {
         state = GlobalArg.playerState.stand;
 
         charlieAnim.SetInteger("h", 0);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
+        if ((GlobalArg.playerStage - 1) % 5 != 0)
             charlieAnim.SetBool("jump", false);
     }
 
@@ -176,7 +196,7 @@ public class Player : MonoBehaviour
         state = GlobalArg.playerState.forward;
 
         charlieAnim.SetInteger("h", 1);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
+        if ((GlobalArg.playerStage - 1) % 5 != 0)
             charlieAnim.SetBool("jump", false);
     }
 
@@ -185,7 +205,7 @@ public class Player : MonoBehaviour
         state = GlobalArg.playerState.backward;
 
         charlieAnim.SetInteger("h", -1);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
+        if ((GlobalArg.playerStage - 1) % 5 != 0)
             charlieAnim.SetBool("jump", false);
     }
 
@@ -204,8 +224,20 @@ public class Player : MonoBehaviour
 
         // 切换玩家动画
         charlieAnim.SetInteger("h", 0);
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 0)
+        // 第一关查理没有跳跃动画
+        if ((GlobalArg.playerStage - 1) % 5 != 0)
             charlieAnim.SetBool("jump", true);
+    }
+
+    protected virtual void drop()
+    {
+        GlobalArg.isPlayerDrop = true;
+
+        gameObject.layer = LayerMask.NameToLayer("Remains");
+        GetComponent<Rigidbody2D>().gravityScale = 0;
+        GetComponent<Rigidbody2D>().velocity = new Vector2(0, -dropSpeed);
+        charlieAnim.SetInteger("h", 0);
+        charlieAnim.SetBool("jump", false);
     }
 
     protected virtual void win()
@@ -218,7 +250,7 @@ public class Player : MonoBehaviour
         charlieAnim.SetTrigger("win");
 
         // 玩家跨越路牌数量重置
-        GlobalArg.playerPassCount[GlobalArg.playerOrder] = 0;
+        GlobalArg.playerPassCount = 0;
     }
 
     protected virtual void die()
@@ -227,14 +259,12 @@ public class Player : MonoBehaviour
         GlobalArg.isPlayerDie = true;
 
         // 若非时间耗尽死亡，则切换玩家动画
-        if ((GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % 5 != 1)
-        {
-            if (GlobalArg.time > 0)
-                charlieAnim.SetTrigger("die");
-        }
+        if (GlobalArg.time > 0)
+            charlieAnim.SetTrigger("die");
 
-        // 计算玩家跨越路牌数量（用于存档）
-        GlobalArg.playerPassCount[GlobalArg.playerOrder] = (int)((transform.position.x - initPos.x) / 10.24f);
+        if ((GlobalArg.playerStage - 1) % 5 != 4)
+            // 计算玩家跨越路牌数量（用于存档）
+            GlobalArg.playerPassCount = (int)((transform.position.x - initPos.x) / 10.24f);
     }
 
     protected virtual void OnCollisionStay2D(Collision2D collision)
@@ -242,28 +272,31 @@ public class Player : MonoBehaviour
         if (collision.collider.tag == "Win" && collision.contacts[0].normal.y == 1)
             state = GlobalArg.playerState.win;
         else if (collision.collider.tag == "Ground")
+            state = GlobalArg.playerState.die;
+        else if (collision.collider.tag == "Platform" && collision.contacts[0].normal.y == 1)
             isGround = true;
     }
 
     protected virtual void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Platform")
             isGround = false;
     }
 
-    protected void addScore(int score, bool isBonus, Vector3 bonusTextPos)
+    public void addScore(int score, bool needAudio, bool isBonus)
     {
-        GlobalArg.playerScore[GlobalArg.playerOrder] += score;
-        if (GlobalArg.hiScore < GlobalArg.playerScore[GlobalArg.playerOrder])
-            GlobalArg.hiScore = GlobalArg.playerScore[GlobalArg.playerOrder];
+        GlobalArg.playerScore += score;
+        if (GlobalArg.hiScore < GlobalArg.playerScore)
+            GlobalArg.hiScore = GlobalArg.playerScore;
+
+        if (needAudio)
+            AudioSource.PlayClipAtPoint(bonusClip, transform.position);
 
         if (isBonus)
         {
-            AudioSource.PlayClipAtPoint(bonusClip, transform.position);
-            bonusText.transform.position = bonusTextPos;
+            bonusText.transform.position = new Vector3(transform.position.x, transform.position.y + 1);
             bonusText.GetComponent<Text>().text = score.ToString();
             bonusText.SetActive(true);
         }
     }
-
 }

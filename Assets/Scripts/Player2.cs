@@ -4,26 +4,25 @@ using UnityEngine;
 
 public class Player2 : Player
 {
-    public float dropSpeed;
-    public float dropPosY;
-    public float dropDelayTimeVal;
+    // 死亡掉落相关
+    public float dropDelayTimeVal;      // 掉落延迟时间阈值
 
-    private float dropDelayTime;
+    // 奖励相关
+    public int monkeyScore;             // 普通猴子得分
+    public int bonusMonkeyScore;        // 奖励猴子得分
 
-    public int monkeyScore;
-    public int bonusMonkeyScore;
-
-    private int passMonkey;
-    private int passBonusMonkey;
+    private int passMonkey;             // 跳过普通猴子数量
+    private int passBonusMonkey;        // 跳过奖励猴子数量
 
 
     protected override void Awake()
     {
         base.Awake();
-        charlieAnim = GetComponent<Animator>();
 
-        dropDelayTime = dropDelayTimeVal;
+        // 获取玩家动画组件
+        charlieAnim = GetComponent<Animator>();
         
+        // 跳过普通猴子和奖励猴子数量初始化为0
         passMonkey = 0;
         passBonusMonkey = 0;
     }
@@ -32,15 +31,16 @@ public class Player2 : Player
     {
         base.Update();
 
-        if (state != GlobalArg.playerState.die)
+        // 玩家得分规则设定
+        if (state != GlobalArg.playerState.die && state != GlobalArg.playerState.win && state != GlobalArg.playerState.drop)
         {
-            if (state == GlobalArg.playerState.win || (!startJump && isGround))
+            if (!startJump && isGround)
             {
                 if (!(passMonkey == 0 && passBonusMonkey == 0))
                 {
-                    addScore(monkeyScore * passMonkey, false, transform.position);
+                    addScore(monkeyScore * passMonkey, false, false);
                     if (passBonusMonkey > 0)
-                        addScore(bonusMonkeyScore * passBonusMonkey, true, new Vector3(transform.position.x, transform.position.y + 1));
+                        addScore(bonusMonkeyScore * passBonusMonkey, true, true);
                     passMonkey = 0;
                     passBonusMonkey = 0;
                 }
@@ -48,28 +48,27 @@ public class Player2 : Player
         }
     }
 
-    protected override void die()
+    protected override void drop()
     {
-        base.die();
+        GlobalArg.isPlayerDrop = true;
 
-        if (dropDelayTime > 0)
-            dropDelayTime -= GlobalArg.fps;
+        // 改变玩家为站立动画
+        charlieAnim.SetInteger("h", 0);
+        charlieAnim.SetBool("jump", false);
 
-        else
-        {
-            GetComponent<Rigidbody2D>().gravityScale = 0;
-            gameObject.layer = LayerMask.NameToLayer("Remains");
+        // 取消玩家重力，速度设为0，使其静止
+        GetComponent<Rigidbody2D>().gravityScale = 0;
+        GetComponent<Rigidbody2D>().velocity = Vector2.zero;
 
-            if (transform.position.y > dropPosY)
-            {
-                charlieAnim.SetInteger("h", 0);
-                charlieAnim.SetBool("jump", false);
-                transform.Translate(Vector2.down * 0.1f);
-            }
+        // 延迟一段时间后掉落
+        Invoke("down", dropDelayTimeVal);
+    }
 
-            else
-                charlieAnim.SetTrigger("die");
-        }
+    private void down()
+    {
+        // 玩家掉落
+        gameObject.layer = LayerMask.NameToLayer("Remains");
+        GetComponent<Rigidbody2D>().velocity = new Vector2(0, -dropSpeed);
     }
 
     protected override void OnCollisionStay2D(Collision2D collision)
@@ -77,11 +76,14 @@ public class Player2 : Player
         base.OnCollisionStay2D(collision);
 
         if (collision.collider.tag == "Monkey")
+            state = GlobalArg.playerState.drop;
+        else if (collision.collider.tag == "Ground")
             state = GlobalArg.playerState.die;
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
+        // 统计玩家跳过猴子数量
         if (collision.tag == "Monkey")
         {
             if (collision.gameObject.GetComponent<Monkey>().isBonus)

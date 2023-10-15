@@ -4,16 +4,20 @@ using UnityEngine;
 
 public class Player3 : Player
 {
-    public int singleBallScore;
-    public int doubleBallScore;
+    // 奖励相关
+    public int singleBallScore;     // 跳一个皮球得分
+    public int doubleBallScore;     // 跳多个皮球得分
 
-    private int passBallCount;
+    private int passBallCount;      // 跳过皮球数量
 
     protected override void Awake()
     {
         base.Awake();
+
+        // 获取玩家动画组件
         charlieAnim = GetComponent<Animator>();
 
+        // 跳过皮球数量初始化为0
         passBallCount = 0;
     }
 
@@ -21,16 +25,17 @@ public class Player3 : Player
     {
         base.Update();
 
-        if (state != GlobalArg.playerState.die)
+        // 玩家得分规则设定
+        if (state != GlobalArg.playerState.die && state != GlobalArg.playerState.win && state != GlobalArg.playerState.drop)
         {
-            if (state == GlobalArg.playerState.win || (!startJump && isGround))
+            if (!startJump && isGround)
             {
                 if (passBallCount > 0)
                 {
                     if (passBallCount == 1)
-                        addScore(singleBallScore, false, transform.position);
+                        addScore(singleBallScore, false, false);
                     else
-                        addScore(doubleBallScore, true, new Vector3(transform.position.x, transform.position.y + 1));
+                        addScore(doubleBallScore, true, true);
                     passBallCount = 0;
                 }
             }
@@ -39,16 +44,13 @@ public class Player3 : Player
 
     protected override void OnCollisionStay2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Win" && collision.contacts[0].normal.y == 1)
-            state = GlobalArg.playerState.win;
-        else if (collision.collider.tag == "Ground")
-            state = GlobalArg.playerState.die;
-        else if (collision.collider.tag == "Ball" && collision.contacts[0].normal.y == 1)
+        base.OnCollisionStay2D(collision);
+
+        if (collision.collider.tag == "Platform" && collision.contacts[0].normal.y == 1)
         {
-            isGround = true;
+            // 根据玩家方向设定皮球状态
             if (!startJump && isGround)
             {
-                
                 if (dir == 0)
                     collision.gameObject.GetComponent<Ball>().state = Ball.ballState.stand;
                 else if (dir > 0)
@@ -61,10 +63,11 @@ public class Player3 : Player
 
     protected override void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ball")
-        {
-            isGround = false;
+        base.OnCollisionExit2D(collision);
 
+        if (collision.collider.tag == "Platform")
+        {
+            // 根据玩家方向设定皮球状态，如果dir == 0，说明是垂直起跳，皮球无需改变状态
             if (dir > 0)
                 collision.gameObject.GetComponent<Ball>().state = Ball.ballState.backrun;
             else if (dir < 0)
@@ -74,7 +77,8 @@ public class Player3 : Player
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.tag == "Ball")
+        // 统计玩家跳过皮球个数
+        if (collision.tag == "Platform")
             ++passBallCount;
     }
 }

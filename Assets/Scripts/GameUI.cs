@@ -10,6 +10,6 @@ public class GameUI : MonoBehaviour
 
     private void Start()
     {
-        stage = Instantiate(stageList[(GlobalArg.playerStage[GlobalArg.playerOrder] - 1) % stageList.Length], transform);
+        stage = Instantiate(stageList[(GlobalArg.playerStage - 1) % stageList.Length], transform);
     }
 }

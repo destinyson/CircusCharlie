@@ -414,7 +414,8 @@ MonoBehaviour:
   gameOver: {fileID: 8300000, guid: bb87616f04712134786ea83ad1a5e127, type: 3}
   applause: {fileID: 8300000, guid: 79e5e54f33c916045937b55fce372200, type: 3}
   score: {fileID: 8300000, guid: 6f51f3a096d9bc8479acbc97db1ff2ed, type: 3}
-  warningBGM: {fileID: 0}
+  addLife: {fileID: 8300000, guid: 5f835f1ab06c1454784c6fe345acd29b, type: 3}
+  warningBGM: {fileID: 8300000, guid: de3cb20fe4169a047a95e54dcababa6f, type: 3}
   pauseText: {fileID: 3901291026719983431}
   pause: {fileID: 8300000, guid: 5587a5e0186536c4396386d377f7c0ee, type: 3}
   ballPrefab: {fileID: 8655214914173657372, guid: 886ee3b4859ccee4491cea5af0a68c6d, type: 3}
@@ -1546,6 +1547,7 @@ MonoBehaviour:
   minPosX: -2.4
   maxPosX: 79
   speed: 2.4
+  dropSpeed: 0
   jumpForce: {x: 0, y: 464.81}
   cameraMaxPosX: 74.32
   cameraMinPosX: 0

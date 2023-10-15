@@ -14,17 +14,18 @@ public class CountUI : MonoBehaviour
     {
         Time.timeScale = 1;
         if (GlobalArg.isPlayerWin)
-            ++GlobalArg.playerStage[GlobalArg.playerOrder];
+            ++GlobalArg.playerStage;
         else if (GlobalArg.isPlayerDie)
-            --GlobalArg.playerLife[GlobalArg.playerOrder];
+            --GlobalArg.playerLife;
         GlobalArg.isPlayerWin = false;
         GlobalArg.isPlayerDie = false;
+        GlobalArg.isPlayerDrop = false;
         GlobalArg.time = 5000;
 
-        announceText.text = GlobalArg.playerLife[GlobalArg.playerOrder] < 0 ?
-                            "GAME OVER" : ("STAGE " + GlobalArg.playerStage[GlobalArg.playerOrder].ToString().PadLeft(2, '0'));
+        announceText.text = GlobalArg.playerLife < 0 ?
+                            "GAME OVER" : ("STAGE " + GlobalArg.playerStage.ToString().PadLeft(2, '0'));
 
-        if (GlobalArg.playerLife[GlobalArg.playerOrder] < 0)
+        if (GlobalArg.playerLife < 0)
             Invoke("changeMenuScene", changeSceneTime);
         else
             Invoke("changeGameScene", changeSceneTime);
