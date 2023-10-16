@@ -68,7 +68,7 @@ public class Stage : MonoBehaviour
         {
             GlobalArg.addLifeScore += 40000;
             ++GlobalArg.playerLife;
-            AudioSource.PlayClipAtPoint(addLife, transform.position);
+            AudioSource.PlayClipAtPoint(addLife, camera.transform.position);
         }
 
         // 若玩家获胜
